@@ -1,4 +1,5 @@
-# service-manager-template
+# WIZARD templates
+This repository houses the service manager templates used by [WIZARD](https://wizard.altlayer.io/)
 
 ## Usage
 
