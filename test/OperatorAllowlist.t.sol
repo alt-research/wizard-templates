@@ -9,9 +9,9 @@ import {OwnableUpgradeable} from "@openzeppelin-upgrades/contracts/access/Ownabl
 import "../src/Errors.sol";
 
 contract OperatorAllowlistMock is OperatorAllowlist {
-    function initialize(address _allowlistManager, bool _allowlistEnabled) external initializer {
+    function initialize(address allowlistManager_, bool _allowlistEnabled) external initializer {
         __Ownable_init();
-        __OperatorAllowlist_init(_allowlistManager, _allowlistEnabled);
+        __OperatorAllowlist_init(allowlistManager_, _allowlistEnabled);
     }
 }
 

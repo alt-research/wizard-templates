@@ -52,14 +52,14 @@ contract GenericTemplate is ServiceManagerBase, TaskManager, Pausable, OperatorA
         IPauserRegistry pauserRegistry_,
         uint256 initialPausedStatus_,
         address initialOwner_,
-        address _rewardsInitiator,
-        address _allowlistManager,
+        address rewardsInitiator_,
+        address allowlistManager_,
         address aggregator_,
         address generator_
     ) external initializer {
         _initializePauser(pauserRegistry_, initialPausedStatus_);
-        __ServiceManagerBase_init(initialOwner_, _rewardsInitiator);
-        __OperatorAllowlist_init(_allowlistManager, true);
+        __ServiceManagerBase_init(initialOwner_, rewardsInitiator_);
+        __OperatorAllowlist_init(allowlistManager_, true);
         __TaskManager_init(aggregator_, generator_);
     }
 
