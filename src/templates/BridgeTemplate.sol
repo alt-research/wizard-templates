@@ -40,10 +40,10 @@ contract BridgeTemplate is ServiceManagerBase, TaskManager, Pausable, OperatorAl
         IRewardsCoordinator __rewardsCoordinator,
         IRegistryCoordinator __registryCoordinator,
         IStakeRegistry __stakeRegistry,
-        uint32 _taskResponseWindowBlock
+        uint32 taskResponseWindowBlock_
     )
         ServiceManagerBase(__avsDirectory, __rewardsCoordinator, __registryCoordinator, __stakeRegistry)
-        TaskManager(__registryCoordinator, _taskResponseWindowBlock)
+        TaskManager(__registryCoordinator, taskResponseWindowBlock_)
     {
         _disableInitializers();
     }
@@ -52,14 +52,14 @@ contract BridgeTemplate is ServiceManagerBase, TaskManager, Pausable, OperatorAl
         IPauserRegistry pauserRegistry_,
         uint256 initialPausedStatus_,
         address initialOwner_,
-        address _rewardsInitiator,
-        address _allowlistManager,
+        address rewardsInitiator_,
+        address allowlistManager_,
         address aggregator_,
         address generator_
     ) external initializer {
         _initializePauser(pauserRegistry_, initialPausedStatus_);
-        __ServiceManagerBase_init(initialOwner_, _rewardsInitiator);
-        __OperatorAllowlist_init(_allowlistManager, true);
+        __ServiceManagerBase_init(initialOwner_, rewardsInitiator_);
+        __OperatorAllowlist_init(allowlistManager_, true);
         __TaskManager_init(aggregator_, generator_);
     }
 
