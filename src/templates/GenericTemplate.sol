@@ -40,10 +40,10 @@ contract GenericTemplate is ServiceManagerBase, TaskManager, Pausable, OperatorA
         IRewardsCoordinator __rewardsCoordinator,
         IRegistryCoordinator __registryCoordinator,
         IStakeRegistry __stakeRegistry,
-        uint32 _taskResponseWindowBlock
+        uint32 taskResponseWindowBlock_
     )
         ServiceManagerBase(__avsDirectory, __rewardsCoordinator, __registryCoordinator, __stakeRegistry)
-        TaskManager(__registryCoordinator, _taskResponseWindowBlock)
+        TaskManager(__registryCoordinator, taskResponseWindowBlock_)
     {
         _disableInitializers();
     }

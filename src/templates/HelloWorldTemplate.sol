@@ -48,12 +48,12 @@ contract HelloWorldTemplate is ECDSAServiceManagerBase, OperatorAllowlist {
         _;
     }
 
-    constructor(address _avsDirectory, address _stakeRegistry, address _delegationManager)
+    constructor(address __avsDirectory, address __stakeRegistry, address __delegationManager)
         ECDSAServiceManagerBase(
-            _avsDirectory,
-            _stakeRegistry,
+            __avsDirectory,
+            __stakeRegistry,
             address(0), // hello-world doesn't need to deal with payments
-            _delegationManager
+            __delegationManager
         )
     {}
 
