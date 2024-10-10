@@ -23,19 +23,15 @@ import {ContextUpgradeable} from "@openzeppelin-upgrades/contracts/utils/Context
 import {OwnableUpgradeable} from "@openzeppelin-upgrades/contracts/access/OwnableUpgradeable.sol";
 import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import {ZeroAddress} from "../Errors.sol";
+import {IOperatorAllowlist} from "../interfaces/IOperatorAllowlist.sol";
 
-abstract contract OperatorAllowlist is ContextUpgradeable, OwnableUpgradeable {
+abstract contract OperatorAllowlist is IOperatorAllowlist, ContextUpgradeable, OwnableUpgradeable {
     using EnumerableSet for EnumerableSet.AddressSet;
 
     error NotAllowed();
     error NotAllowlistManager();
     error AlreadyEnabled();
     error AlreadyDisabled();
-
-    event AllowlistUpdated(address[] operators, bool[] status);
-    event AllowlistEnabled();
-    event AllowlistDisabled();
-    event AllowlistManagerChanged(address indexed previousManager, address indexed newManager);
 
     /// @notice Set of operators that are allowed to register
     EnumerableSet.AddressSet private _allowlist;
