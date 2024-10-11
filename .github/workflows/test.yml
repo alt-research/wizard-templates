@@ -45,6 +45,20 @@ jobs:
         id: test
       - name: Slither
         run: |
-          pip3 install slither-analyzer==0.9.3
+          # Create a virtual environment
+          python3 -m venv slither-env
+      
+          # Activate the virtual environment
+          source slither-env/bin/activate
+
+          # Install setuptools
+          pip install setuptools
+
+          # Install the package within the virtual environment
+          pip install slither-analyzer==0.9.3
+
+          # Verify slither installation
           slither --version   
+
+          # Run slither
           slither . --config-file slither.config.json
