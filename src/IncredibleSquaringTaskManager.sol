@@ -175,6 +175,7 @@ contract IncredibleSquaringTaskManager is
             allTaskResponses[referenceTaskIndex] == keccak256(abi.encode(taskResponse, taskResponseMetadata)),
             "Task response does not match the one recorded in the contract"
         );
+        // slither-disable-next-line boolean-equal
         require(
             taskSuccesfullyChallenged[referenceTaskIndex] == false,
             "The response to this task has already been challenged successfully."
@@ -190,6 +191,7 @@ contract IncredibleSquaringTaskManager is
         bool isResponseCorrect = (actualSquaredOutput == taskResponse.numberSquared);
 
         // if response was correct, no slashing happens so we return
+        // slither-disable-next-line boolean-equal
         if (isResponseCorrect == true) {
             emit TaskChallengedUnsuccessfully(referenceTaskIndex, msg.sender);
             return;
@@ -216,6 +218,7 @@ contract IncredibleSquaringTaskManager is
         // get the address of operators who didn't sign
         address[] memory addresssOfNonSigningOperators = new address[](pubkeysOfNonSigningOperators.length);
         for (uint256 i = 0; i < pubkeysOfNonSigningOperators.length; i++) {
+            // slither-disable-next-line calls-loop
             addresssOfNonSigningOperators[i] =
                 BLSApkRegistry(address(blsApkRegistry)).pubkeyHashToOperator(hashesOfPubkeysOfNonSigningOperators[i]);
         }
