@@ -60,7 +60,7 @@ contract GenericTemplate is ServiceManagerBase, TaskManager, Pausable, OperatorA
         _initializePauser(pauserRegistry_, initialPausedStatus_);
         __ServiceManagerBase_init(initialOwner_, rewardsInitiator_);
         __OperatorAllowlist_init(allowlistManager_, true);
-        __TaskManager_init(aggregator_, generator_);
+        __TaskManager_init(aggregator_, generator_, initialOwner_);
     }
 
     //////////////////////////////////////////////////////////////////////////////
