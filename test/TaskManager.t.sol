@@ -2,7 +2,6 @@
 pragma solidity ^0.8.9;
 
 import "forge-std/Test.sol";
-
 import {TransparentUpgradeableProxy} from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 import {ProxyAdmin} from "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
 import {TaskManager} from "../src/templates/TaskManager.sol";
@@ -16,8 +15,8 @@ contract TaskManagerMock is TaskManager {
         TaskManager(_registryCoordinator, _taskResponseWindowBlock)
     {}
 
-    function initialize(address _aggregator, address _generator) external initializer {
-        __TaskManager_init(_aggregator, _generator);
+    function initialize(address aggregator_, address generator_, address initialOwner_) external initializer {
+        __TaskManager_init(aggregator_, generator_, initialOwner_);
     }
 
     function createNewTask(bytes calldata message, uint32 quorumThresholdPercentage, bytes calldata quorumNumbers)
@@ -61,7 +60,7 @@ contract TaskManagerTest is BLSMockAVSDeployer {
         proxy = new TransparentUpgradeableProxy(address(taskManager), address(proxyAdmin), "");
 
         taskManager = TaskManagerMock(address(proxy));
-        taskManager.initialize(aggregator, generator);
+        taskManager.initialize(aggregator, generator, owner);
     }
 
     function testInitialization() public {
@@ -128,8 +127,8 @@ contract TaskManagerTest is BLSMockAVSDeployer {
         proxy = new TransparentUpgradeableProxy(address(taskManager), address(proxyAdmin), "");
 
         taskManager = TaskManagerMock(address(proxy));
-        vm.expectRevert(ZeroAddress.selector);
-        taskManager.initialize(address(0), generator);
+        vm.expectRevert("Aggregator cannot be zero address");
+        taskManager.initialize(address(0), generator, owner);
     }
 
     function testRevertIfZeroAddressGenerator() public {
@@ -138,7 +137,41 @@ contract TaskManagerTest is BLSMockAVSDeployer {
         proxy = new TransparentUpgradeableProxy(address(taskManager), address(proxyAdmin), "");
 
         taskManager = TaskManagerMock(address(proxy));
-        vm.expectRevert(ZeroAddress.selector);
-        taskManager.initialize(aggregator, address(0));
+        vm.expectRevert("Generator cannot be zero address");
+        taskManager.initialize(aggregator, address(0), owner);
+    }
+
+    // New Tests for Setter Functions
+
+    function testSetAggregator() public {
+        address newAggregator = address(0x103);
+
+        taskManager.setAggregator(newAggregator);
+
+        assertEq(taskManager.aggregator(), newAggregator);
+    }
+
+    function testSetGenerator() public {
+        address newGenerator = address(0x104);
+
+        taskManager.setGenerator(newGenerator);
+
+        assertEq(taskManager.generator(), newGenerator);
+    }
+
+    function testRevertIfNonOwnerSetsAggregator() public {
+        address newAggregator = address(0x103);
+
+        vm.prank(address(0x105)); // Impersonate a non-owner
+        vm.expectRevert("Ownable: caller is not the owner");
+        taskManager.setAggregator(newAggregator);
+    }
+
+    function testRevertIfNonOwnerSetsGenerator() public {
+        address newGenerator = address(0x104);
+
+        vm.prank(address(0x106)); // Impersonate a non-owner
+        vm.expectRevert("Ownable: caller is not the owner");
+        taskManager.setGenerator(newGenerator);
     }
 }

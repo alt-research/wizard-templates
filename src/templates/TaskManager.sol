@@ -1,18 +1,31 @@
 // SPDX-License-Identifier: UNLICENSED
-
 pragma solidity ^0.8.9;
 
-import {Initializable} from "@openzeppelin-upgrades/contracts/proxy/utils/Initializable.sol";
+import {OwnableUpgradeable} from "@openzeppelin-upgrades/contracts/access/OwnableUpgradeable.sol";
 import {BLSApkRegistry} from "eigenlayer-middleware/src/BLSApkRegistry.sol";
 import {RegistryCoordinator} from "eigenlayer-middleware/src/RegistryCoordinator.sol";
 import {BLSSignatureChecker, IRegistryCoordinator} from "eigenlayer-middleware/src/BLSSignatureChecker.sol";
 import {ZeroAddress} from "../Errors.sol";
 
-abstract contract TaskManager is BLSSignatureChecker, Initializable {
+/// @title TaskManager Contract
+/// @dev This contract is responsible for managing tasks, responses, and interactions between the aggregator and task generator.
+abstract contract TaskManager is BLSSignatureChecker, OwnableUpgradeable {
     event NewTaskCreated(uint32 indexed taskIndex, Task task);
     event TaskResponded(TaskResponse taskResponse, TaskResponseMetadata taskResponseMetadata);
 
+    /// @notice Emitted when the aggregator address is updated.
+    /// @param oldAggregator The previous aggregator address.
+    /// @param newAggregator The new aggregator address.
+    event AggregatorUpdated(address indexed oldAggregator, address indexed newAggregator);
+
+    /// @notice Emitted when the generator address is updated.
+    /// @param oldGenerator The previous generator address.
+    /// @param newGenerator The new generator address.
+    event GeneratorUpdated(address indexed oldGenerator, address indexed newGenerator);
+
     // STRUCTS
+
+    /// @dev Defines the structure of a task.
     struct Task {
         uint32 taskCreatedBlock;
         uint32 quorumThresholdPercentage;
@@ -64,56 +77,83 @@ abstract contract TaskManager is BLSSignatureChecker, Initializable {
     uint256[45] private __GAP;
 
     /* MODIFIERS */
+
+    /// @dev Modifier to allow only the aggregator to call certain functions.
     modifier onlyAggregator() {
         require(msg.sender == aggregator, "Aggregator must be the caller");
         _;
     }
 
-    // onlyTaskGenerator is used to restrict createNewTask from only being called by a permissioned entity
-    // in a real world scenario, this would be removed by instead making createNewTask a payable function
+    /// @dev Modifier to allow only the task generator to create new tasks.
     modifier onlyTaskGenerator() {
         require(msg.sender == generator, "Task generator must be the caller");
         _;
     }
 
+    /// @notice Constructor to initialize the contract.
+    /// @param _registryCoordinator Address of the registry coordinator.
+    /// @param _taskResponseWindowBlock Number of blocks within which the aggregator has to respond to a task.
     constructor(IRegistryCoordinator _registryCoordinator, uint32 _taskResponseWindowBlock)
         BLSSignatureChecker(_registryCoordinator)
     {
         TASK_RESPONSE_WINDOW_BLOCK = _taskResponseWindowBlock;
     }
 
-    function __TaskManager_init(address _aggregator, address _generator) internal onlyInitializing {
-        if (_aggregator == address(0)) {
-            revert ZeroAddress();
-        }
-        if (_generator == address(0)) {
-            revert ZeroAddress();
-        }
+    /// @notice Initializes the contract with aggregator and generator addresses and transfers ownership.
+    /// @param _aggregator Address of the aggregator.
+    /// @param _generator Address of the task generator.
+    /// @param initialOwner Address of the initial owner.
+    function __TaskManager_init(address _aggregator, address _generator, address initialOwner)
+        public
+        onlyInitializing
+    {
+        __Ownable_init();
+        transferOwnership(initialOwner);
+        _setAggregator(_aggregator);
+        _setGenerator(_generator);
+    }
 
-        aggregator = _aggregator;
-        generator = _generator;
+    /// @notice Sets a new aggregator address.
+    /// @dev Only callable by the contract owner.
+    /// @param newAggregator Address of the new aggregator.
+    function setAggregator(address newAggregator) external onlyOwner {
+        _setAggregator(newAggregator);
+    }
+
+    /// @notice Sets a new generator address.
+    /// @dev Only callable by the contract owner.
+    /// @param newGenerator Address of the new task generator.
+    function setGenerator(address newGenerator) external onlyOwner {
+        _setGenerator(newGenerator);
     }
 
     /* FUNCTIONS */
-    // NOTE: this function creates new task, assigns it a taskId
+
+    /// @notice Creates a new task and assigns it a taskId.
+    /// @param message Message payload of the task.
+    /// @param quorumThresholdPercentage Minimum percentage of quorum required.
+    /// @param quorumNumbers Numbers representing the quorum.
+    /// @dev Only callable by the task generator.
     function _createNewTask(bytes calldata message, uint32 quorumThresholdPercentage, bytes calldata quorumNumbers)
         internal
         onlyTaskGenerator
     {
-        // create a new task struct
         Task memory newTask;
         newTask.message = message;
         newTask.taskCreatedBlock = uint32(block.number);
         newTask.quorumThresholdPercentage = quorumThresholdPercentage;
         newTask.quorumNumbers = quorumNumbers;
 
-        // store hash of task onchain, emit event, and increase taskNum
         allTaskHashes[latestTaskNum] = keccak256(abi.encode(newTask));
         emit NewTaskCreated(latestTaskNum, newTask);
-        latestTaskNum = latestTaskNum + 1;
+        latestTaskNum++;
     }
 
-    // NOTE: this function responds to existing tasks.
+    /// @notice Responds to an existing task.
+    /// @param task The task being responded to.
+    /// @param taskResponse The response data to the task.
+    /// @param nonSignerStakesAndSignature Signature and stakes of non-signers for verification.
+    /// @dev Only callable by the aggregator.
     function _respondToTask(
         Task calldata task,
         TaskResponse calldata taskResponse,
@@ -123,33 +163,24 @@ abstract contract TaskManager is BLSSignatureChecker, Initializable {
         bytes calldata quorumNumbers = task.quorumNumbers;
         uint32 quorumThresholdPercentage = task.quorumThresholdPercentage;
 
-        // check that the task is valid, hasn't been responsed yet, and is being responsed in time
         require(
             keccak256(abi.encode(task)) == allTaskHashes[taskResponse.referenceTaskIndex],
-            "supplied task does not match the one recorded in the contract"
+            "Supplied task does not match the one recorded in the contract"
         );
-        // some logical checks
         require(
             allTaskResponses[taskResponse.referenceTaskIndex] == bytes32(0),
             "Aggregator has already responded to the task"
         );
         require(
-            uint32(block.number) <= taskCreatedBlock + TASK_RESPONSE_WINDOW_BLOCK,
-            "Aggregator has responded to the task too late"
+            uint32(block.number) <= taskCreatedBlock + TASK_RESPONSE_WINDOW_BLOCK, "Aggregator has responded too late"
         );
 
-        /* CHECKING SIGNATURES & WHETHER THRESHOLD IS MET OR NOT */
-        // calculate message which operators signed
         bytes32 message = keccak256(abi.encode(taskResponse));
 
-        // check the BLS signature
         (QuorumStakeTotals memory quorumStakeTotals, bytes32 hashOfNonSigners) =
             checkSignatures(message, quorumNumbers, taskCreatedBlock, nonSignerStakesAndSignature);
 
-        // check that signatories own at least a threshold percentage of each quourm
         for (uint256 i = 0; i < quorumNumbers.length; i++) {
-            // we don't check that the quorumThresholdPercentages are not >100 because a greater value would trivially fail the check, implying
-            // signed stake > total stake
             require(
                 quorumStakeTotals.signedStakeForQuorum[i] * _THRESHOLD_DENOMINATOR
                     >= quorumStakeTotals.totalStakeForQuorum[i] * uint8(quorumThresholdPercentage),
@@ -158,10 +189,28 @@ abstract contract TaskManager is BLSSignatureChecker, Initializable {
         }
 
         TaskResponseMetadata memory taskResponseMetadata = TaskResponseMetadata(uint32(block.number), hashOfNonSigners);
-        // updating the storage with task responsea
         allTaskResponses[taskResponse.referenceTaskIndex] = keccak256(abi.encode(taskResponse, taskResponseMetadata));
 
-        // emitting event
         emit TaskResponded(taskResponse, taskResponseMetadata);
+    }
+
+    /* INTERNAL FUNCTIONS */
+
+    /// @dev Internal function to set a new task generator.
+    /// @param newGenerator Address of the new generator.
+    function _setGenerator(address newGenerator) internal {
+        require(newGenerator != address(0), "Generator cannot be zero address");
+        address oldGenerator = generator;
+        generator = newGenerator;
+        emit GeneratorUpdated(oldGenerator, newGenerator);
+    }
+
+    /// @dev Internal function to set a new aggregator.
+    /// @param newAggregator Address of the new aggregator.
+    function _setAggregator(address newAggregator) internal {
+        require(newAggregator != address(0), "Aggregator cannot be zero address");
+        address oldAggregator = aggregator;
+        aggregator = newAggregator;
+        emit AggregatorUpdated(oldAggregator, newAggregator);
     }
 }
