@@ -21,12 +21,12 @@ pragma solidity =0.8.26;
 
 import {ContextUpgradeable} from "@openzeppelin-upgrades/contracts/utils/ContextUpgradeable.sol";
 import {OwnableUpgradeable} from "@openzeppelin-upgrades/contracts/access/OwnableUpgradeable.sol";
-import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
+import {EnumerableSetUpgradeable} from "@openzeppelin-upgrades/contracts/utils/structs/EnumerableSetUpgradeable.sol";
 import {ZeroAddress} from "../Errors.sol";
 import {IOperatorAllowlist} from "../interfaces/IOperatorAllowlist.sol";
 
 abstract contract OperatorAllowlist is IOperatorAllowlist, ContextUpgradeable, OwnableUpgradeable {
-    using EnumerableSet for EnumerableSet.AddressSet;
+    using EnumerableSetUpgradeable for EnumerableSetUpgradeable.AddressSet;
 
     error NotAllowed();
     error NotAllowlistManager();
@@ -34,7 +34,7 @@ abstract contract OperatorAllowlist is IOperatorAllowlist, ContextUpgradeable, O
     error AlreadyDisabled();
 
     /// @notice Set of operators that are allowed to register
-    EnumerableSet.AddressSet private _allowlist;
+    EnumerableSetUpgradeable.AddressSet private _allowlist;
 
     /// @notice Whether or not the allowlist is enabled
     bool public allowlistEnabled;

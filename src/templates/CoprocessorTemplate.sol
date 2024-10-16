@@ -20,17 +20,17 @@
 pragma solidity =0.8.26;
 
 import {EnumerableSetUpgradeable} from "@openzeppelin-upgrades/contracts/utils/structs/EnumerableSetUpgradeable.sol";
-import {Pausable} from "eigenlayer-core/contracts/permissions/Pausable.sol";
-import {IAVSDirectory} from "eigenlayer-core/contracts/interfaces/IAVSDirectory.sol";
-import {ISignatureUtils} from "eigenlayer-core/contracts/interfaces/ISignatureUtils.sol";
-import {IPauserRegistry} from "eigenlayer-core/contracts/interfaces/IPauserRegistry.sol";
-import {IRewardsCoordinator} from "eigenlayer-core/contracts/interfaces/IRewardsCoordinator.sol";
-import {IServiceManager} from "eigenlayer-middleware/src/interfaces/IServiceManager.sol";
-import {IStakeRegistry} from "eigenlayer-middleware/src/interfaces/IStakeRegistry.sol";
-import {IRegistryCoordinator} from "eigenlayer-middleware/src/interfaces/IRegistryCoordinator.sol";
-import {ServiceManagerBase} from "eigenlayer-middleware/src/ServiceManagerBase.sol";
+import {Pausable} from "@eigenlayer/contracts/permissions/Pausable.sol";
+import {IAVSDirectory} from "@eigenlayer/contracts/interfaces/IAVSDirectory.sol";
+import {ISignatureUtils} from "@eigenlayer/contracts/interfaces/ISignatureUtils.sol";
+import {IPauserRegistry} from "@eigenlayer/contracts/interfaces/IPauserRegistry.sol";
+import {IRewardsCoordinator} from "@eigenlayer/contracts/interfaces/IRewardsCoordinator.sol";
+import {IServiceManager} from "@eigenlayer-middleware/src/interfaces/IServiceManager.sol";
+import {IStakeRegistry} from "@eigenlayer-middleware/src/interfaces/IStakeRegistry.sol";
+import {IRegistryCoordinator} from "@eigenlayer-middleware/src/interfaces/IRegistryCoordinator.sol";
+import {ServiceManagerBase} from "@eigenlayer-middleware/src/ServiceManagerBase.sol";
 import {OperatorAllowlist} from "./OperatorAllowlist.sol";
-import {BLSSignatureChecker, IRegistryCoordinator} from "eigenlayer-middleware/src/BLSSignatureChecker.sol";
+import {BLSSignatureChecker, IRegistryCoordinator} from "@eigenlayer-middleware/src/BLSSignatureChecker.sol";
 
 /// @title CoprocessorTemplate Contract
 /// @dev This contract manages operator registration, verification of requests, and interactions with other Eigenlayer components. It also includes access control mechanisms for the aggregator.

@@ -20,15 +20,15 @@
 pragma solidity =0.8.26;
 
 import {EnumerableSetUpgradeable} from "@openzeppelin-upgrades/contracts/utils/structs/EnumerableSetUpgradeable.sol";
-import {Pausable} from "eigenlayer-core/contracts/permissions/Pausable.sol";
-import {IAVSDirectory} from "eigenlayer-core/contracts/interfaces/IAVSDirectory.sol";
-import {ISignatureUtils} from "eigenlayer-core/contracts/interfaces/ISignatureUtils.sol";
-import {IPauserRegistry} from "eigenlayer-core/contracts/interfaces/IPauserRegistry.sol";
-import {IRewardsCoordinator} from "eigenlayer-core/contracts/interfaces/IRewardsCoordinator.sol";
-import {IServiceManager} from "eigenlayer-middleware/src/interfaces/IServiceManager.sol";
-import {IStakeRegistry} from "eigenlayer-middleware/src/interfaces/IStakeRegistry.sol";
-import {IRegistryCoordinator} from "eigenlayer-middleware/src/interfaces/IRegistryCoordinator.sol";
-import {ServiceManagerBase} from "eigenlayer-middleware/src/ServiceManagerBase.sol";
+import {Pausable} from "@eigenlayer/contracts/permissions/Pausable.sol";
+import {IAVSDirectory} from "@eigenlayer/contracts/interfaces/IAVSDirectory.sol";
+import {ISignatureUtils} from "@eigenlayer/contracts/interfaces/ISignatureUtils.sol";
+import {IPauserRegistry} from "@eigenlayer/contracts/interfaces/IPauserRegistry.sol";
+import {IRewardsCoordinator} from "@eigenlayer/contracts/interfaces/IRewardsCoordinator.sol";
+import {IServiceManager} from "@eigenlayer-middleware/src/interfaces/IServiceManager.sol";
+import {IStakeRegistry} from "@eigenlayer-middleware/src/interfaces/IStakeRegistry.sol";
+import {IRegistryCoordinator} from "@eigenlayer-middleware/src/interfaces/IRegistryCoordinator.sol";
+import {ServiceManagerBase} from "@eigenlayer-middleware/src/ServiceManagerBase.sol";
 import {TaskManager} from "./TaskManager.sol";
 import {OperatorAllowlist} from "./OperatorAllowlist.sol";
 

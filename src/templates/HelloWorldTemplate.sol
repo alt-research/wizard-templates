@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.9;
 
-import "eigenlayer-core/contracts/libraries/BytesLib.sol";
-import "eigenlayer-core/contracts/core/DelegationManager.sol";
-import "eigenlayer-core/contracts/permissions/Pausable.sol";
-import "eigenlayer-middleware/src/unaudited/ECDSAServiceManagerBase.sol";
-import "eigenlayer-middleware/src/unaudited/ECDSAStakeRegistry.sol";
-import {IRegistryCoordinator} from "eigenlayer-middleware/src/interfaces/IRegistryCoordinator.sol";
+import "@eigenlayer/contracts/libraries/BytesLib.sol";
+import "@eigenlayer/contracts/core/DelegationManager.sol";
+import "@eigenlayer/contracts/permissions/Pausable.sol";
+import "@eigenlayer-middleware/src/unaudited/ECDSAServiceManagerBase.sol";
+import "@eigenlayer-middleware/src/unaudited/ECDSAStakeRegistry.sol";
+import {IRegistryCoordinator} from "@eigenlayer-middleware/src/interfaces/IRegistryCoordinator.sol";
 import {ECDSAUpgradeable} from "@openzeppelin-upgrades/contracts/utils/cryptography/ECDSAUpgradeable.sol";
 import {OperatorAllowlist} from "./OperatorAllowlist.sol";
 

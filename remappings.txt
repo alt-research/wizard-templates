@@ -1,3 +1,6 @@
-forge-std/=lib/eigenlayer-middleware/lib/forge-std/src/
-eigenlayer-middleware/=lib/eigenlayer-middleware/
-eigenlayer-core/=lib/eigenlayer-middleware/lib/eigenlayer-contracts/src/
+forge-std/=lib/incredible-squaring-avs/contracts/lib/eigenlayer-middleware/lib/forge-std/src/
+incredible-squaring-avs/=lib/incredible-squaring-avs/contracts/
+@eigenlayer-middleware/=lib/incredible-squaring-avs/contracts/lib/eigenlayer-middleware/
+@eigenlayer/=lib/incredible-squaring-avs/contracts/lib/eigenlayer-middleware/lib/eigenlayer-contracts/src/
+@openzeppelin/=lib/incredible-squaring-avs/contracts/lib/eigenlayer-middleware/lib/openzeppelin-contracts/
+@openzeppelin-upgrades/=lib/incredible-squaring-avs/contracts/lib/eigenlayer-middleware/lib/openzeppelin-contracts-upgradeable/
