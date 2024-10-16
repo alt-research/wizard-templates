@@ -15,8 +15,7 @@
 //  d8'        `8b    88     88,     88          88,    ,88    `8b,d8'    "8b,   ,aa  88
 // d8'          `8b  8888    "Y888   88888888888 `"8bbdP"Y8      Y88'      `"Ybbd8"'  88
 //                                                               d8'
-//                                                              d8'
-
+//
 pragma solidity =0.8.26;
 
 import {EnumerableSetUpgradeable} from "@openzeppelin-upgrades/contracts/utils/structs/EnumerableSetUpgradeable.sol";
@@ -32,11 +31,35 @@ import {ServiceManagerBase} from "eigenlayer-middleware/src/ServiceManagerBase.s
 import {OperatorAllowlist} from "./OperatorAllowlist.sol";
 import {BLSSignatureChecker, IRegistryCoordinator} from "eigenlayer-middleware/src/BLSSignatureChecker.sol";
 
+/// @title CoprocessorTemplate Contract
+/// @dev This contract manages operator registration, verification of requests, and interactions with other Eigenlayer components. It also includes access control mechanisms for the aggregator.
 contract CoprocessorTemplate is ServiceManagerBase, BLSSignatureChecker, Pausable, OperatorAllowlist {
     using EnumerableSetUpgradeable for EnumerableSetUpgradeable.AddressSet;
 
+    /// @notice Emitted when a request is successfully verified.
+    /// @param reqId The unique identifier of the request (message hash).
+    /// @param sender The address that triggered the verification.
     event RequestVerified(bytes32 reqId, address sender);
 
+    /// @notice Emitted when the aggregator address is updated.
+    /// @param oldAggregator The previous aggregator address.
+    /// @param newAggregator The new aggregator address.
+    event AggregatorUpdated(address indexed oldAggregator, address indexed newAggregator);
+
+    /// @dev Address of the aggregator responsible for verifying requests.
+    address public aggregator;
+
+    /// @dev Modifier to restrict function access to only the aggregator.
+    modifier onlyAggregator() {
+        require(msg.sender == aggregator, "Only aggregator can call this function");
+        _;
+    }
+
+    /// @notice Initializes the contract with required dependencies.
+    /// @param __avsDirectory Address of the AVS directory contract.
+    /// @param __rewardsCoordinator Address of the rewards coordinator contract.
+    /// @param __registryCoordinator Address of the registry coordinator contract.
+    /// @param __stakeRegistry Address of the stake registry contract.
     constructor(
         IAVSDirectory __avsDirectory,
         IRewardsCoordinator __rewardsCoordinator,
@@ -49,16 +72,41 @@ contract CoprocessorTemplate is ServiceManagerBase, BLSSignatureChecker, Pausabl
         _disableInitializers();
     }
 
+    /// @notice Initializes the contract with the given parameters.
+    /// @param pauserRegistry_ Address of the pauser registry.
+    /// @param initialPausedStatus_ Initial paused status.
+    /// @param initialOwner_ Address of the contract owner.
+    /// @param rewardsInitiator_ Address responsible for initiating rewards.
+    /// @param allowlistManager_ Address of the allowlist manager.
+    /// @param aggregator_ Initial aggregator address.
     function initialize(
         IPauserRegistry pauserRegistry_,
         uint256 initialPausedStatus_,
         address initialOwner_,
         address rewardsInitiator_,
-        address allowlistManager_
+        address allowlistManager_,
+        address aggregator_
     ) external initializer {
         _initializePauser(pauserRegistry_, initialPausedStatus_);
         __ServiceManagerBase_init(initialOwner_, rewardsInitiator_);
         __OperatorAllowlist_init(allowlistManager_, true);
+        _setAggregator(aggregator_);
+    }
+
+    /// @notice Sets a new aggregator address.
+    /// @dev Only callable by the contract owner.
+    /// @param newAggregator Address of the new aggregator.
+    function setAggregator(address newAggregator) external onlyOwner {
+        _setAggregator(newAggregator);
+    }
+
+    /// @dev Internal function to update the aggregator address.
+    /// @param newAggregator Address of the new aggregator.
+    function _setAggregator(address newAggregator) internal {
+        require(newAggregator != address(0), "Aggregator cannot be the zero address");
+        address oldAggregator = aggregator;
+        aggregator = newAggregator;
+        emit AggregatorUpdated(oldAggregator, newAggregator);
     }
 
     //////////////////////////////////////////////////////////////////////////////
@@ -67,6 +115,7 @@ contract CoprocessorTemplate is ServiceManagerBase, BLSSignatureChecker, Pausabl
 
     /**
      * @inheritdoc ServiceManagerBase
+     * @dev Registers an operator to the AVS (Aggregation Verification Service).
      */
     function registerOperatorToAVS(
         address operator,
@@ -75,14 +124,12 @@ contract CoprocessorTemplate is ServiceManagerBase, BLSSignatureChecker, Pausabl
         if (allowlistEnabled && !isOperatorAllowed(operator)) {
             revert NotAllowed();
         }
-        // Stake requirement for quorum is checked in StakeRegistry.sol
-        // https://github.com/Layr-Labs/eigenlayer-middleware/src/blob/dev/src/RegistryCoordinator.sol#L488
-        // https://github.com/Layr-Labs/eigenlayer-middleware/src/blob/dev/src/StakeRegistry.sol#L84
         _avsDirectory.registerOperatorToAVS(operator, operatorSignature);
     }
 
     /**
      * @inheritdoc ServiceManagerBase
+     * @dev Deregisters an operator from the AVS.
      */
     function deregisterOperatorFromAVS(address operator)
         public
@@ -93,25 +140,26 @@ contract CoprocessorTemplate is ServiceManagerBase, BLSSignatureChecker, Pausabl
         _avsDirectory.deregisterOperatorFromAVS(operator);
     }
 
+    /// @notice Verifies the request, only callable by the aggregator.
+    /// @dev Ensures that the request is signed by the required quorums.
+    /// @param reqId Hash of the request message.
+    /// @param quorumNumbers Byte array representing different quorum numbers.
+    /// @param referenceBlockNumber Block number used for quorum signature validation.
+    /// @param nonSignerStakesAndSignature Contains stakes and BLS signature of non-signers.
     function verifyRequest(
-        bytes32 reqId, // msgHash
-        bytes calldata quorumNumbers, // each byte is a different quorum number
-            // the must have signed in the corresponding quorum in `quorumNumbers`
+        bytes32 reqId,
+        bytes calldata quorumNumbers,
         uint32 referenceBlockNumber,
         NonSignerStakesAndSignature calldata nonSignerStakesAndSignature
-    ) external {
+    ) external onlyAggregator {
         // check the signature
-        (QuorumStakeTotals memory quorumStakeTotals, /* bytes32 hashOfNonSigners */ ) = checkSignatures(
-            reqId,
-            quorumNumbers, // use list of uint8s instead of uint256 bitmap to not iterate 256 times
-            referenceBlockNumber,
-            nonSignerStakesAndSignature
-        );
+        (QuorumStakeTotals memory quorumStakeTotals, /* bytes32 hashOfNonSigners */ ) =
+            checkSignatures(reqId, quorumNumbers, referenceBlockNumber, nonSignerStakesAndSignature);
 
         uint256 quorumThresholdPercentage = 66;
         uint256 thresholdDenominator = 100;
 
-        // check that signatories own at least a threshold percentage of each quourm
+        // check that signatories own at least a threshold percentage of each quorum
         for (uint256 i; i < quorumNumbers.length; i++) {
             // we don't check that the quorumThresholdPercentages are not >100 because a greater value would trivially fail the check, implying
             // signed stake > total stake
@@ -122,7 +170,7 @@ contract CoprocessorTemplate is ServiceManagerBase, BLSSignatureChecker, Pausabl
             );
         }
 
-        // emitting event
+        // emit event
         emit RequestVerified(reqId, _msgSender());
     }
 }
