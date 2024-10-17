@@ -14,6 +14,7 @@ import {
     IncredibleSquaringTemplate, IIncredibleSquaringTaskManager
 } from "../src/templates/IncredibleSquaringTemplate.sol";
 
+// forge script ./script/TemplateVerifier.s.sol --private-key $PK --rpc-url $URL --etherscan-api-key $API_KEY --broadcast -vvvv --slow --verify
 contract TemplateVerifier is Script {
     function run() external {
         // Start broadcasting for deploying the contracts
