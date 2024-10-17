@@ -5,9 +5,9 @@ import "forge-std/Test.sol";
 import {TransparentUpgradeableProxy} from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 import {ProxyAdmin} from "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
 import {TaskManager} from "../src/templates/TaskManager.sol";
-import {IRegistryCoordinator} from "eigenlayer-middleware/src/BLSSignatureChecker.sol";
+import {IRegistryCoordinator} from "@eigenlayer-middleware/src/BLSSignatureChecker.sol";
 import "../src/Errors.sol";
-import {BLSMockAVSDeployer} from "eigenlayer-middleware/test/utils/BLSMockAVSDeployer.sol";
+import {BLSMockAVSDeployer} from "@eigenlayer-middleware/test/utils/BLSMockAVSDeployer.sol";
 import {TransparentUpgradeableProxy} from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 
 contract TaskManagerMock is TaskManager {
