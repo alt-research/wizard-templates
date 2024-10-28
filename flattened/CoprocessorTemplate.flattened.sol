@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity =0.8.26 >=0.5.0 ^0.8.0 ^0.8.1 ^0.8.12 ^0.8.2;
+pragma solidity =0.8.26;
 
 // lib/incredible-squaring-avs/contracts/lib/eigenlayer-middleware/lib/eigenlayer-contracts/src/contracts/interfaces/IPauserRegistry.sol
 
