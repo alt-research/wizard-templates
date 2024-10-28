@@ -14,5 +14,10 @@ FILES=$(find "$TEMPLATES_DIR" -type f -name '*Template.sol')
 for FILE in $FILES; do
     BASENAME=$(basename "$FILE" .sol)
     OUTPUT_FILE="${FLATTENED_DIR}/${BASENAME}.flattened.sol"
+    
+    # Run the forge flatten command
     forge flatten --output "$OUTPUT_FILE" "$FILE"
+    
+    # Remove <0.9.0 from the pragma statement
+    sed -i 's/<0.9.0 //g' "$OUTPUT_FILE"
 done

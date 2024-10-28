@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.9;
+pragma solidity =0.8.26;
 
 import "@eigenlayer/contracts/libraries/BytesLib.sol";
 import "@eigenlayer/contracts/core/DelegationManager.sol";
